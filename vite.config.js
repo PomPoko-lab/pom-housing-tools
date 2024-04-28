@@ -8,6 +8,7 @@ export default defineConfig({
   plugins: [
     vue(),
   ],
+    base: '/pom-housing-tools/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
