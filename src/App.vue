@@ -61,6 +61,10 @@ const getTotalWeights = () => {
     }
 
     return tableRows.value.reduce((acc, row) => {
+        if (row.fulfilled) {
+            return acc
+        }
+
         const percentAmt = Number(row.weightPercent) * houseListingPrice.value / 100
         const flatAmt = Number(row.weightFlat)
         return acc + percentAmt + flatAmt
