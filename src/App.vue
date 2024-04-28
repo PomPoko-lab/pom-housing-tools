@@ -18,8 +18,8 @@ if (storedTableRows) {
     tableRows = ref(JSON.parse(storedTableRows))
 } else {
     tableRows = ref([
-        { id: 1, desc: 'Good Location', weight: 5 },
-        { id: 2, desc: 'Sidings', weight: 5 },
+        { id: 1, desc: 'Good Location', weightPercent: 5, weightFlat: 0 },
+        { id: 2, desc: 'Sidings', weightPercent: 5, weightFlat: 0 },
     ])
 }
 
@@ -43,8 +43,8 @@ const addTableRow = () => {
     const newRow = {
         id: tableRows.value + 1,
         desc: 'New Requirement',
-        weight: 0,
-        fulfilled: false,
+        weightPercent: 0,
+        weightFlat: 0,
     }
     tableRows.value.push(newRow)
 }
@@ -55,15 +55,21 @@ const removeTableRow = (row) => {
     })
 }
 
-const totalWeights = () => {
+const getTotalWeights = () => {
     if (tableRows.value.length === 0) {
         return 0
     }
 
     return tableRows.value.reduce((acc, row) => {
-        if (row.fulfilled) return acc
-        return acc + Number(row.weight)
+        const percentAmt = Number(row.weightPercent) * houseListingPrice.value / 100
+        const flatAmt = Number(row.weightFlat)
+        return acc + percentAmt + flatAmt
     }, 0)
+}
+
+const calculateOfferPrice = () => {
+    const totalWeights = getTotalWeights()
+    return houseListingPrice.value - totalWeights
 }
 
 </script>
@@ -71,12 +77,12 @@ const totalWeights = () => {
 <template>
     <div class="container py-3">
         <div class="row gap-3">
-            <section class="col">
+            <section class="col-12 col-md-8">
                 <h4>Requirements</h4>
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Fulfilled</th>
+                            <th><span class="d-none d-md-block">Fulfilled</span></th>
                             <th>Description</th>
                             <th>Weight</th>
                         </tr>
@@ -93,12 +99,16 @@ const totalWeights = () => {
                                 <input type="text" class="form-control" v-model="row.desc">
                             </td>
                             <td>
-                                <div class="d-flex gap-2">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" v-model="row.weight">
+                                <div class="row gap-2 gx-0">
+                                    <div class="input-group col-12 col-lg">
+                                        <input type="number" class="form-control" v-model="row.weightPercent">
                                         <span class="input-group-text">%</span>
                                     </div>
-                                    <button class="btn btn-outline-danger" @click="removeTableRow(row)">
+                                    <div class="input-group col-12 col-lg">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" v-model="row.weightFlat">
+                                    </div>
+                                    <button class="btn btn-outline-danger col col-lg-2" @click="removeTableRow(row)">
                                         <i class="bi-trash"></i>
                                     </button>
                                 </div>
@@ -112,10 +122,10 @@ const totalWeights = () => {
                     </button>
                 </div>
             </section>
-            <main class="col">
+            <main class="col-12 col-md">
                 <h5>Calculated Offer Price</h5>
                 <p class="lead">
-                    {{ moneyFormatter.format(houseListingPrice - (houseListingPrice * totalWeights() / 100)) }}
+                    {{ moneyFormatter.format(calculateOfferPrice()) }}
                 </p>
                 <div class="mb-3">
                     <label for="house-listing-price" class="form-label">House Listing Price</label>
